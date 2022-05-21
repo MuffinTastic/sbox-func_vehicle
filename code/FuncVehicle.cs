@@ -113,6 +113,8 @@ public partial class FuncVehicle : AnimatedEntity, IUse
 		Position = SpawnPosition;
 		Rotation = SpawnRotation;
 		Velocity = Vector3.Zero;
+		TurnAngle = 0;
+		Speed = 0.0f;
 	}
 
 	[Input]
