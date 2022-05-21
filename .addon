@@ -1,0 +1,25 @@
+{
+  "Title": "func_vehicle",
+  "Type": "game",
+  "Org": "muffin",
+  "Ident": "func_vehicle",
+  "Schema": 1,
+  "HasAssets": true,
+  "AssetsPath": "",
+  "ResourcePaths": null,
+  "HasCode": true,
+  "CodePath": "/code/",
+  "RootNamespace": "FuncVehicle",
+  "Metadata": {
+    "MapList": [
+      "muffin.funcvehicledemo"
+    ],
+    "PerMapRanking": false,
+    "LeaderboardType": 0,
+    "RankType": 0,
+    "MapSelect": 2,
+    "GameNetworkType": 0,
+    "MaxPlayers": 0,
+    "MinPlayers": 0
+  }
+}
