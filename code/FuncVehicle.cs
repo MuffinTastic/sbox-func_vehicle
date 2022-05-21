@@ -90,6 +90,8 @@ public partial class FuncVehicle : AnimatedEntity, IUse
 
 	TimeSince CanTurnNow;
 
+	public bool Grounded => !SurfaceNormal.AlmostEqual( Vector3.Zero );
+
 	public override void Spawn()
 	{
 		base.Spawn();
@@ -127,8 +129,6 @@ public partial class FuncVehicle : AnimatedEntity, IUse
 		ControlsEntity = Entity.All.OfType<FuncVehicleControls>()
 			.Where( e => e.Name == ControlsEntityName )
 			.FirstOrDefault();
-
-		Log.Info( ControlsEntity );
 	}
 
 	public override void ClientSpawn()
@@ -203,6 +203,18 @@ public partial class FuncVehicle : AnimatedEntity, IUse
 
 	private void UpdateInput()
 	{
+		if ( Input.Pressed( InputButton.View ) )
+		{
+			if ( CameraMode is FuncVehicle3PCamera )
+			{
+				CameraMode = new FuncVehicleCamera();
+			}
+			else
+			{
+				CameraMode = new FuncVehicle3PCamera();
+			}
+		}
+
 		float speedRatio = Speed / VehicleSpeed;
 
 		if ( Input.Forward != 0.0f )
@@ -355,8 +367,10 @@ public partial class FuncVehicle : AnimatedEntity, IUse
 
 			float vx = TargetAngle.pitch - angle.pitch;
 			float vy = TargetAngle.yaw - angle.yaw;
-			var rot = -vehicleRoll.EulerAngles.pitch;
-			if ( rot < -180.0f ) rot += 360.0f;
+
+			//var rot = -vehicleRoll.EulerAngles.pitch;
+			//if ( rot < -180.0f ) rot += 360.0f;
+			var rot = 0;
 			float vz = -rot - angle.roll;
 
 			// DebugOverlay.ScreenText( $"{Rotation.Left}", -3 );
@@ -385,21 +399,21 @@ public partial class FuncVehicle : AnimatedEntity, IUse
 		}
 		else
 		{
-			//if ( LaunchTime != -1.0f )
-			//{
+			if ( LaunchTime != -1.0f )
+			{
 				GravityVector = Vector3.Zero.WithZ( (Time.Now - LaunchTime) * -35.0f );
 
 				if ( GravityVector.z < -400 )
 				{
 					GravityVector.z = -400;
 				}
-			//}
-			//else
-			//{
-			//	LaunchTime = Time.Now;
-			//	GravityVector = Vector3.Zero;
-			//	Velocity = Velocity * 1.5f;
-			//}
+			}
+			else
+			{
+				LaunchTime = Time.Now;
+				GravityVector = Vector3.Zero;
+				Velocity = Velocity * 1.5f;
+			}
 
 		}
 		
@@ -418,7 +432,7 @@ public partial class FuncVehicle : AnimatedEntity, IUse
 		}
 		else
 		{
-			Velocity = Velocity + GravityVector * Time.Delta;
+			Velocity = Velocity + GravityVector;
 		}
 
 		if ( Velocity.LengthSquared > 0.01f )
@@ -439,11 +453,11 @@ public partial class FuncVehicle : AnimatedEntity, IUse
 		{
 			if ( Speed > 0 )
 			{
-				tr = Trace.Ray( new Ray( FrontRight, Rotation.Right ), 16.0f ).WorldOnly().Run();
+				tr = Trace.Ray( new Ray( FrontRight, Rotation.Right ), 16.0f ).Ignore( this ).Run();
 			}
 			else if ( Speed < 0 )
 			{
-				tr = Trace.Ray( new Ray( BackLeft, -Rotation.Right ), 16.0f ).WorldOnly().Run();
+				tr = Trace.Ray( new Ray( BackLeft, -Rotation.Right ), 16.0f ).Ignore( this ).Run();
 			}
 
 			if ( tr?.Fraction != 1.0f )
@@ -455,11 +469,11 @@ public partial class FuncVehicle : AnimatedEntity, IUse
 		{
 			if ( Speed > 0 )
 			{
-				tr = Trace.Ray( new Ray( FrontLeft, Rotation.Left ), 16.0f ).WorldOnly().Run();
+				tr = Trace.Ray( new Ray( FrontLeft, Rotation.Left ), 16.0f ).Ignore( this ).Run();
 			}
 			else if ( Speed < 0 )
 			{
-				tr = Trace.Ray( new Ray( BackRight, -Rotation.Left ), 16.0f ).WorldOnly().Run();
+				tr = Trace.Ray( new Ray( BackRight, -Rotation.Left ), 16.0f ).Ignore( this ).Run();
 			}
 
 			if ( tr?.Fraction != 1.0f )
@@ -516,7 +530,6 @@ public partial class FuncVehicle : AnimatedEntity, IUse
 	private void FollowTerrain()
 	{
 		var tr = Trace.Ray( new Ray( Position, Vector3.Down ), DistanceFromGround + 4.0f )
-			.WorldOnly()
 			.Ignore( this )
 			.Run();
 
@@ -537,15 +550,15 @@ public partial class FuncVehicle : AnimatedEntity, IUse
 
 		if ( Speed < 0 )
 		{
-			tr = Trace.Ray( new Ray( BackLeft, Rotation.Backward ), 16.0f ).WorldOnly().Run();
+			tr = Trace.Ray( new Ray( BackLeft, Rotation.Backward ), 16.0f ).Ignore( this ).Run();
 
 			if ( tr.Fraction == 1.0f )
 			{
-				tr = Trace.Ray( new Ray( BackRight, Rotation.Backward ), 16.0f ).WorldOnly().Run();
+				tr = Trace.Ray( new Ray( BackRight, Rotation.Backward ), 16.0f ).Ignore( this ).Run();
 
 				if ( tr.Fraction == 1.0f )
 				{
-					tr = Trace.Ray( new Ray( Back, Rotation.Backward ), 16.0f ).WorldOnly().Run();
+					tr = Trace.Ray( new Ray( Back, Rotation.Backward ), 16.0f ).Ignore( this ).Run();
 
 					if ( tr.Fraction == 1.0f )
 					{
@@ -553,7 +566,7 @@ public partial class FuncVehicle : AnimatedEntity, IUse
 					}
 				}
 
-				if ( Rotation.Backward.Dot( tr.Normal ) > 0.7f && tr.Normal.z < 0.1f )
+				if ( Rotation.Backward.Dot( tr.Normal ) > 0.7f && tr.Normal.z > 0.1f )
 				{
 					SurfaceNormal = tr.Normal;
 					SurfaceNormal.z = 0.0f;
@@ -571,7 +584,7 @@ public partial class FuncVehicle : AnimatedEntity, IUse
 			}
 			else
 			{
-				if ( Rotation.Backward.Dot( tr.Normal ) > 0.7f && tr.Normal.z < 0.1f )
+				if ( Rotation.Backward.Dot( tr.Normal ) > 0.7f && tr.Normal.z > 0.1f )
 				{
 					SurfaceNormal = tr.Normal;
 					SurfaceNormal.z = 0.0f;
@@ -596,15 +609,15 @@ public partial class FuncVehicle : AnimatedEntity, IUse
 		}
 		else if ( Speed > 0 )
 		{
-			tr = Trace.Ray( new Ray( FrontLeft, Rotation.Forward ), 16.0f ).WorldOnly().Run();
+			tr = Trace.Ray( new Ray( FrontLeft, Rotation.Forward ), 16.0f ).Ignore( this ).Run();
 
 			if ( tr.Fraction == 1.0f )
 			{
-				tr = Trace.Ray( new Ray( FrontRight, Rotation.Forward ), 16.0f ).WorldOnly().Run();
+				tr = Trace.Ray( new Ray( FrontRight, Rotation.Forward ), 16.0f ).Ignore( this ).Run();
 
 				if ( tr.Fraction == 1.0f )
 				{
-					tr = Trace.Ray( new Ray( Front, Rotation.Forward ), 16.0f ).WorldOnly().Run();
+					tr = Trace.Ray( new Ray( Front, Rotation.Forward ), 16.0f ).Ignore( this ).Run();
 
 					if ( tr.Fraction == 1.0f )
 					{
@@ -637,7 +650,14 @@ public partial class FuncVehicle : AnimatedEntity, IUse
 
 	private void UpdateSound()
 	{
-		EngineSound?.SetPitch( 1.0f + Velocity.Length / 1500.0f );
+		float flpitch = VEHICLE_STARTPITCH + (MathF.Abs( Speed ) * (VEHICLE_MAXPITCH - VEHICLE_STARTPITCH) / VEHICLE_MAXSPEED);
+
+		if ( flpitch > VEHICLE_MAXPITCH )
+			flpitch = VEHICLE_MAXPITCH;
+
+		flpitch /= VEHICLE_STARTPITCH;
+
+		EngineSound?.SetPitch( flpitch );
 	}
 
 	void SimulateDriver( Client client )

@@ -19,7 +19,7 @@
     "RankType": 0,
     "MapSelect": 2,
     "GameNetworkType": 0,
-    "MaxPlayers": 0,
-    "MinPlayers": 0
+    "MaxPlayers": 32,
+    "MinPlayers": 1
   }
 }

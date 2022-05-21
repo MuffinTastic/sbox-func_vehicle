@@ -16,7 +16,5 @@ public class FuncVehicleControls : BaseTrigger
 		SetInteractsAs( CollisionLayer.Debris );
 		CollisionGroup = CollisionGroup.Default;
 		Tags.Add( "vehiclecontrols" );
-
-		Log.Info( Name );
 	}
 }

@@ -7,7 +7,7 @@
 		VolumeRandom = 0
 		Pitch = 1
 		PitchRandom = 0
-		DistanceMax = 360
+		DistanceMax = 2500
 		Sounds = 
 		[
 			resource:"sounds/vehicle_start1.vsnd",
