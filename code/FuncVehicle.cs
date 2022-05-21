@@ -215,6 +215,11 @@ public partial class FuncVehicle : AnimatedEntity, IUse
 			}
 		}
 
+		if ( Input.Pressed( InputButton.Reload ) )
+		{
+			Respawn();
+		}
+
 		float speedRatio = Speed / VehicleSpeed;
 
 		if ( Input.Forward != 0.0f )
