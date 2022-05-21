@@ -90,6 +90,8 @@ public partial class FuncVehicle : AnimatedEntity, IUse
 
 	TimeSince CanTurnNow;
 
+	bool Brake;
+
 	public bool Grounded => !SurfaceNormal.AlmostEqual( Vector3.Zero );
 
 	public override void Spawn()
@@ -265,6 +267,8 @@ public partial class FuncVehicle : AnimatedEntity, IUse
 
 			Speed = speedRatio * VehicleSpeed;
 			AcceleratorDecay = 0.0f;
+
+			Brake = Speed > 0 && Input.Forward < 0.0f;
 		}
 
 		if ( CanTurnNow > 0.05f )
@@ -663,6 +667,17 @@ public partial class FuncVehicle : AnimatedEntity, IUse
 			flpitch = VEHICLE_MAXPITCH;
 
 		flpitch /= VEHICLE_STARTPITCH;
+
+		if ( Brake )
+		{
+			EngineSound?.Stop();
+			EngineSound = null;
+			PlaySound( "vehicle_brake1" );
+			return;
+		}
+
+		if ( EngineSound is null )
+			EngineSound = PlaySound( EngineSoundFile );
 
 		EngineSound?.SetPitch( flpitch );
 	}

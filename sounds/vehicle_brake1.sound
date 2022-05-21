@@ -8,7 +8,10 @@
 		Pitch = 1
 		PitchRandom = 0
 		DistanceMax = 2500
-		Sounds = null
+		Sounds = 
+		[
+			resource:"sounds/vehicle_brake1.vsnd",
+		]
 		SelectionMode = 3
 	}
 }
